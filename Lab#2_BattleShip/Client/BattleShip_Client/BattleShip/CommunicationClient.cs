@@ -15,6 +15,7 @@ namespace BattleShip
         private Socket communicationEntrante;
         private De_Serialisation de_Serialisation = new De_Serialisation();
         bool connexionEtablie;
+        string erreur;
 
         public CommunicationClient()
         {
@@ -50,7 +51,6 @@ namespace BattleShip
 
         public bool EnvoisMessage(string messageTest)
         {
-
             try
             {
                 byte[] msg = Encoding.ASCII.GetBytes(messageTest.ToString() + "|");
@@ -59,17 +59,17 @@ namespace BattleShip
                 int bytesSent = communicationEntrante.Send(msg);
                 return true;
             }
-            catch (ArgumentNullException ane)
+            catch (ArgumentNullException)
             {
-                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
+                Console.WriteLine("ArgumentNullException : {0}", erreur = "Le message à envoyer ne doit pas être vide.");
             }
-            catch (SocketException se)
+            catch (SocketException)
             {
-                Console.WriteLine("SocketException : {0}", se.ToString());
+                Console.WriteLine("SocketException : {0}", erreur = "Le serveur est déconnecté! Impossible d'envoyer le message");
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                Console.WriteLine("Unexpected exception : {0}", erreur = "Un problème inattendu est arrivé! le message ne peut pas être envoyé!");
             }
 
             return false;
@@ -88,17 +88,17 @@ namespace BattleShip
 
                 messageRecu = donneeRecues.Substring(0, donneeRecues.IndexOf("|"));
             }
-            catch (ArgumentNullException ane)
+            catch (ArgumentNullException)
             {
-                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
+                Console.WriteLine("ArgumentNullException : {0}", erreur = "Le message à envoyer ne doit pas être vide.");
             }
-            catch (SocketException se)
+            catch (SocketException)
             {
-                Console.WriteLine("SocketException : {0}", se.ToString());
+                Console.WriteLine("SocketException : {0}", erreur = "Le serveur est déconnecté! Impossible d'envoyer le message");
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                Console.WriteLine("Unexpected exception : {0}", erreur = "Un problème inattendu est arrivé! le message ne peut pas être envoyé!");
             }
 
             return messageRecu;

@@ -9,8 +9,23 @@ namespace BattleShip
 
         public string Deserialize(string jsonString)
         {
-            string messageTest = JsonSerializer.Deserialize<String>(jsonString);
-            return messageTest;
+            try
+            {
+                string messageTest = JsonSerializer.Deserialize<String>(jsonString);
+                return messageTest;
+            }
+            catch (JsonException jsonE)
+            {
+                return jsonE.Message;
+            }
+            catch (ArgumentNullException ane)
+            {
+                return ane.Message;
+            }
+            catch (NotSupportedException nse)
+            {
+                return nse.Message;
+            }
         }
 
         // besoin de test Serialisation

@@ -43,6 +43,17 @@ namespace Client
 
               reponse =  communicationClient.EnvoisMessage(deSe.Serialize("message en provenance du  CLIENT"));
 
+
+
+
+
+
+
+
+
+
+
+
                 // pour linstant reponse message = false juste pour les besoin de test 
                // reponse = false;
 
