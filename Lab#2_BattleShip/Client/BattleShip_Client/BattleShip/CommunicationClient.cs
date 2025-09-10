@@ -28,10 +28,18 @@ namespace BattleShip
         {
             try
             {
-                IPHostEntry infosAdresseServeur = Dns.Resolve(adresseServeur);
-                IPAddress adresseIp = infosAdresseServeur.AddressList[1];
-                // on prend l'lement 1 quaund on fait les test en local et c'est à cette position
-                // que se trouve l'adresse ipv4
+                IPHostEntry infosAdresseServeur = Dns.GetHostEntry(adresseServeur);
+                // Sélectionne la première adresse IPv4 disponible
+                IPAddress adresseIp = infosAdresseServeur.AddressList
+                    .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+
+                if (adresseIp == null)
+                {
+                    Console.WriteLine("Aucune adresse IPv4 trouvée pour le serveur.");
+                    connexionEtablie = false;
+                    return false;
+                }
+
                 IPEndPoint adresseEntrante = new IPEndPoint(adresseIp, 22222);
 
                 communicationEntrante = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -43,8 +51,8 @@ namespace BattleShip
             {
                 Console.WriteLine("Exception: {0}", e.ToString());
                 connexionEtablie = false;
-                communicationEntrante.Shutdown(SocketShutdown.Both);
-                communicationEntrante.Close();
+                communicationEntrante?.Shutdown(SocketShutdown.Both);
+                communicationEntrante?.Close();
             }
             return connexionEtablie;
         }
