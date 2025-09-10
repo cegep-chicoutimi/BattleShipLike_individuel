@@ -12,53 +12,78 @@ namespace Client
         CommunicationClient communicationClient = new CommunicationClient();
         De_Serialisation deSe = new De_Serialisation();
         private string adresseServeur;
-        bool reponse; 
-        
+        bool reponse;
+
+        GrilleBattle maGrille = new GrilleBattle();
+        GrilleBattle grilleAttaque = new GrilleBattle();
+
         public void Sequence()
         {
             Console.WriteLine("\nVeuillez entrer l'adresse du serveur s'il vous plait : ");
             adresseServeur = Console.ReadLine() ?? string.Empty;
 
-           reponse = communicationClient.StartClient(adresseServeur);
-
-            // recepetion et deserialisation du message du serveur
-
-
-            // envois de message serialiser une fois que ce sera fait
-
-            //test communication
-
-
-        
-           // Console.ForegroundColor = ConsoleColor.Black;
-
-            while (reponse)
+            reponse = communicationClient.StartClient(adresseServeur);
+            if (!reponse)
             {
-                string messageRecu = deSe.Deserialize(communicationClient.ReceptionMessage());
-                Console.WriteLine("\n------------");
-                Console.WriteLine("\n------------");
-                Console.WriteLine("Message reçu venant du serveur : " + messageRecu);
-                Console.WriteLine("\n------------");
-                Console.WriteLine("\n------------");
-
-              reponse =  communicationClient.EnvoisMessage(deSe.Serialize("message en provenance du  CLIENT"));
-
-
-
-
-
-
-
-
-
-
-
-
-                // pour linstant reponse message = false juste pour les besoin de test 
-               // reponse = false;
-
+                Console.WriteLine("Connexion au serveur impossible.");
+                return;
             }
 
+            // Placement des bateaux
+            Console.WriteLine("Placez vos bateaux (ex: A1 B1 pour un bateau horizontal) :");
+            string coord = Console.ReadLine();
+            while (!maGrille.PlacerBateau(coord))
+            {
+                Console.WriteLine("Coordonnées invalides, réessayez :");
+                coord = Console.ReadLine();
+            }
+
+            // Après le placement des bateaux
+          
+            communicationClient.EnvoisMessage("placement terminé");
+
+            // Attendre la confirmation du serveur
+            string confirmation = deSe.Deserialize(communicationClient.ReceptionMessage());
+            if (confirmation != "pret")
+            {
+                Console.WriteLine("Erreur de synchronisation avec le serveur.");
+                return;
+            }
+            while (true)
+            {
+                while (!maGrille.bateauMort())
+                {
+                    Console.Clear();
+                    Console.WriteLine("Grille d'attaque :");
+                    grilleAttaque.AfficherGrilleTir();
+                    Console.WriteLine("Votre grille de bateaux :");
+                    maGrille.AfficherMaGrilleBateau();
+
+                    // Tour du joueur : ENVOI DU TIR AU SERVEUR
+                    Console.WriteLine("Entrez les coordonnées de votre tir (ex: A1) :");
+                    string tir = Console.ReadLine();
+                    while (!grilleAttaque.Tirer(tir))
+                    {
+                        Console.WriteLine("Coordonnées invalides ou déjà jouées, réessayez :");
+                        tir = Console.ReadLine();
+                    }
+                    communicationClient.EnvoisMessage(deSe.Serialize(tir)); // Envoi du tir
+
+
+                    string tirAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
+                    maGrille.Tirer(tirAdversaire);
+                    Console.WriteLine($"L'adversaire a tiré en {tirAdversaire}");
+                    communicationClient.EnvoisMessage(deSe.Serialize("résultat du tir")); // à adapter selon ta logique
+                    maGrille.MettreAJourGrille(tirAdversaire);
+                    if (maGrille.bateauMort())
+                    {
+                        Console.WriteLine("Dommage ! Votre bateau a été coulé !");
+                        break;
+                    }
+                }
+            }
+            
+          
 
         }
     }

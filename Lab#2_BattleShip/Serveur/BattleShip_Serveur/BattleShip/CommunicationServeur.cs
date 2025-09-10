@@ -50,7 +50,7 @@ namespace BattleShip
 
             try
             {
-                byte[] msg = Encoding.ASCII.GetBytes(messageTest.ToString() + "|");
+                byte[] msg = Encoding.UTF8.GetBytes(messageTest + "|");
                 Thread.Sleep(200);
 
                 int bytesSent = communication.Send(msg);
@@ -81,9 +81,10 @@ namespace BattleShip
             {
 
                 octectsRecu = communication.Receive(donneesBrutes);
-                donneeRecues = Encoding.ASCII.GetString(donneesBrutes, 0, octectsRecu);
+                donneeRecues = Encoding.UTF8.GetString(donneesBrutes, 0, octectsRecu);
 
-                messageRecu = donneeRecues.Substring(0, donneeRecues.IndexOf("|"));
+                int index = donneeRecues.IndexOf("|");
+                messageRecu = index >= 0 ? donneeRecues.Substring(0, index) : donneeRecues;
                 response = true;
             }
             catch (SocketException e)

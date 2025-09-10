@@ -134,8 +134,8 @@ namespace BattleShip
             if (!ConvertirCoord(coord, out int x, out int y))
                 return;
 
-            if (emplacementBateau[x, y] == 'B')
-                emplacementBateau[x, y] = 'T';
+            if (emplacementBateau[x,y]=='B')
+                emplacementBateau[x,y] = 'T';
             else
                 emplacementBateau[x, y] = 'X';
         }
