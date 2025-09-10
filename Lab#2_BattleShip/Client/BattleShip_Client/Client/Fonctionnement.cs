@@ -78,7 +78,28 @@ namespace Client
                     if (maGrille.bateauMort())
                     {
                         Console.WriteLine("Dommage ! Votre bateau a été coulé !");
-                        break;
+                        Console.WriteLine("\nVoulez vous rejouer ? ");
+                        while (true)
+                        {
+                            Console.WriteLine("1.Oui");
+                            Console.WriteLine("2.Non");
+                            string choix = Console.ReadLine();
+                            if (choix == "1")
+                            {
+                                communicationClient.EnvoisMessage(deSe.Serialize("oui"));
+                                break;
+                            }
+                            else if (choix == "2")
+                            {
+                                communicationClient.EnvoisMessage(deSe.Serialize("non"));
+                                return;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Choix invalide, veuillez réessayer.");
+                            }
+                        }
+                       // break;
                     }
                 }
             }
