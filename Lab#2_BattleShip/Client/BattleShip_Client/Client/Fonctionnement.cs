@@ -13,9 +13,13 @@ namespace Client
         De_Serialisation deSe = new De_Serialisation();
         private string adresseServeur;
         bool reponse;
+        bool demanderRejouer = true;
+        bool rejouer = true;
+
 
         GrilleBattle maGrille = new GrilleBattle();
         GrilleBattle grilleAttaque = new GrilleBattle();
+        GrilleBattle emplacementBateauAdversaire = new GrilleBattle();
 
         public void Sequence()
         {
@@ -29,28 +33,34 @@ namespace Client
                 return;
             }
 
-            // Placement des bateaux
-            Console.WriteLine("Placez vos bateaux (ex: A1 B1 pour un bateau horizontal) :");
-            string coord = Console.ReadLine();
-            while (!maGrille.PlacerBateau(coord))
+            while (rejouer)
             {
-                Console.WriteLine("Coordonnées invalides, réessayez :");
-                coord = Console.ReadLine();
-            }
 
-            // Après le placement des bateaux
-          
-            communicationClient.EnvoisMessage("placement terminé");
+                // Placement des bateaux
+                Console.WriteLine("Placez vos bateaux (ex: A1 B1 pour un bateau horizontal) :");
+                string coord = Console.ReadLine();
+                while (!maGrille.PlacerBateau(coord))
+                {
+                    Console.WriteLine("Coordonnées invalides, réessayez :");
+                    coord = Console.ReadLine();
+                }
 
-            // Attendre la confirmation du serveur
-            string confirmation = deSe.Deserialize(communicationClient.ReceptionMessage());
-            if (confirmation != "pret")
-            {
-                Console.WriteLine("Erreur de synchronisation avec le serveur.");
-                return;
-            }
-            while (true)
-            {
+                // Après le placement des bateaux
+
+                communicationClient.EnvoisMessage("Placement terminé");
+                communicationClient.EnvoisMessage(deSe.Serialize(coord));
+                string coordonneeAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
+                emplacementBateauAdversaire.PlacerBateau(coordonneeAdversaire);
+
+
+                // Attendre la confirmation du serveur
+                string confirmation = deSe.Deserialize(communicationClient.ReceptionMessage());
+                if (confirmation != "pret")
+                {
+                    Console.WriteLine("Erreur de synchronisation avec le serveur.");
+                    return;
+                }
+
                 while (!maGrille.bateauMort())
                 {
                     Console.Clear();
@@ -79,7 +89,7 @@ namespace Client
                     {
                         Console.WriteLine("Dommage ! Votre bateau a été coulé !");
                         Console.WriteLine("\nVoulez vous rejouer ? ");
-                        while (true)
+                        while (demanderRejouer)
                         {
                             Console.WriteLine("1.Oui");
                             Console.WriteLine("2.Non");
@@ -87,24 +97,27 @@ namespace Client
                             if (choix == "1")
                             {
                                 communicationClient.EnvoisMessage(deSe.Serialize("oui"));
-                                break;
+                                demanderRejouer = false;
+                                rejouer = true;
                             }
                             else if (choix == "2")
                             {
                                 communicationClient.EnvoisMessage(deSe.Serialize("non"));
-                                return;
+                                demanderRejouer = false;
+                                rejouer = false;
                             }
                             else
                             {
                                 Console.WriteLine("Choix invalide, veuillez réessayer.");
+                                demanderRejouer = true;
                             }
                         }
-                       // break;
+                        // break;
                     }
                 }
             }
-            
-          
+
+
 
         }
     }
