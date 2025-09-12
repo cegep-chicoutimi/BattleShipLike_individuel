@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BattleShip
+﻿namespace BattleShip
 {
     public class GrilleBattle
     {
@@ -114,19 +108,18 @@ namespace BattleShip
             return true;
         }
 
-        public bool bateauMort()
+        public bool bateauAdversaireMort()
         {
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    if (emplacementBateau[i, j] == 'B' && emplacement[i, j] != 'T')
-                    {
-                        return false; // Il reste au moins une partie du bateau non touchée
-                    }
+                    if (emplacement[i, j] == 'B')
+
+                        return false;
                 }
             }
-            return true; // Toutes les parties du bateau ont été touchées
+            return true;
         }
 
         public void MettreAJourGrille(string coord)

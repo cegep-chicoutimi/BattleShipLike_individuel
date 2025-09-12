@@ -47,10 +47,8 @@ namespace Client
 
                 // Après le placement des bateaux
 
-                communicationClient.EnvoisMessage("Placement terminé");
-                communicationClient.EnvoisMessage(deSe.Serialize(coord));
-                string coordonneeAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
-                emplacementBateauAdversaire.PlacerBateau(coordonneeAdversaire);
+                communicationClient.EnvoisMessage(deSe.Serialize("OK"));
+
 
 
                 // Attendre la confirmation du serveur
@@ -61,7 +59,11 @@ namespace Client
                     return;
                 }
 
-                while (!maGrille.bateauMort())
+                communicationClient.EnvoisMessage(deSe.Serialize(coord));
+                string coordonneeAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
+                grilleAttaque.PlacerBateau(coordonneeAdversaire);
+
+                while (maGrille.bateauAdversaireMort())
                 {
                     Console.Clear();
                     Console.WriteLine("Grille d'attaque :");
@@ -77,15 +79,20 @@ namespace Client
                         Console.WriteLine("Coordonnées invalides ou déjà jouées, réessayez :");
                         tir = Console.ReadLine();
                     }
+                    Console.Clear();
+                    Console.WriteLine("Grille d'attaque :");
+                    grilleAttaque.AfficherGrilleTir();
+                    Console.WriteLine("Votre grille de bateaux :");
+                    maGrille.AfficherMaGrilleBateau();
+
                     communicationClient.EnvoisMessage(deSe.Serialize(tir)); // Envoi du tir
 
 
                     string tirAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
-                    maGrille.Tirer(tirAdversaire);
-                    Console.WriteLine($"L'adversaire a tiré en {tirAdversaire}");
-                    communicationClient.EnvoisMessage(deSe.Serialize("résultat du tir")); // à adapter selon ta logique
                     maGrille.MettreAJourGrille(tirAdversaire);
-                    if (maGrille.bateauMort())
+                    Console.WriteLine($"L'adversaire a tiré en {tirAdversaire}");
+                   
+                    if (maGrille.bateauAdversaireMort())
                     {
                         Console.WriteLine("Dommage ! Votre bateau a été coulé !");
                         Console.WriteLine("\nVoulez vous rejouer ? ");
