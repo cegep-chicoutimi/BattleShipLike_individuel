@@ -114,22 +114,37 @@ namespace BattleShip
             return true;
         }
 
-        public bool bateauMort()
+        public bool bateauAdversaireMort()
+        {
+            int count = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    if (emplacement[i, j] == 'T' && count != 2)
+                        count++;
+                }
+
+
+            }
+            if (count < 2)
+                return false;
+            else
+                return true;
+        }
+
+        public bool ToujoursVivant()
         {
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    if (emplacement[i, j] == 'T')
-                    {
-                        if ((j<4&&(emplacement[i, j+1] == 'T')) || (i<4&&(emplacement[i+1,j] == 'T')) || (j>0&&(emplacement[i, j-1] == 'T')) || (i < 0 && (emplacement[i - 1, j] == 'T')))
-                            return true;
+                    if (emplacementBateau[i, j] == 'B')
 
-
-                    }
+                        return true;
                 }
             }
-            return false; 
+            return false;
         }
 
         public void MettreAJourGrille(string coord)

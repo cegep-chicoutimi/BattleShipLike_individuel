@@ -63,7 +63,7 @@ namespace Client
                 string coordonneeAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
                 grilleAttaque.PlacerBateau(coordonneeAdversaire);
 
-                while (maGrille.bateauAdversaireMort())
+                while (!grilleAttaque.bateauAdversaireMort())
                 {
                     Console.Clear();
                     Console.WriteLine("Grille d'attaque :");
@@ -87,14 +87,9 @@ namespace Client
 
                     communicationClient.EnvoisMessage(deSe.Serialize(tir)); // Envoi du tir
 
-
-                    string tirAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
-                    maGrille.MettreAJourGrille(tirAdversaire);
-                    Console.WriteLine($"L'adversaire a tiré en {tirAdversaire}");
-                   
-                    if (maGrille.bateauAdversaireMort())
+                    if (grilleAttaque.bateauAdversaireMort())
                     {
-                        Console.WriteLine("Dommage ! Votre bateau a été coulé !");
+                        Console.WriteLine("Gagné!");
                         Console.WriteLine("\nVoulez vous rejouer ? ");
                         while (demanderRejouer)
                         {
@@ -121,6 +116,41 @@ namespace Client
                         }
                         // break;
                     }
+
+                    if (!maGrille.ToujoursVivant() == true)
+                    {
+                        string re = deSe.Deserialize(communicationClient.ReceptionMessage());
+                        while (demanderRejouer)
+                        {
+                            Console.WriteLine("1.Oui");
+                            Console.WriteLine("2.Non");
+                            string choix = Console.ReadLine();
+                            if (choix == "1")
+                            {
+                                communicationClient.EnvoisMessage(deSe.Serialize("oui"));
+                                demanderRejouer = false;
+                                rejouer = true;
+                            }
+                            else if (choix == "2")
+                            {
+                                communicationClient.EnvoisMessage(deSe.Serialize("non"));
+                                demanderRejouer = false;
+                                rejouer = false;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Choix invalide, veuillez réessayer.");
+                                demanderRejouer = true;
+                            }
+                        }
+
+                    }
+
+                    string tirAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
+                    maGrille.MettreAJourGrille(tirAdversaire);
+                    Console.WriteLine($"L'adversaire a tiré en {tirAdversaire}");
+                   
+                    
                 }
             }
 

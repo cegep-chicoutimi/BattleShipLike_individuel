@@ -110,16 +110,35 @@
 
         public bool bateauAdversaireMort()
         {
+            int count = 0;
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    if (emplacement[i, j] == 'B')
+                    if (emplacement[i, j] == 'T' && count!=2 )
+                        count++;
+                }
 
-                        return false;
+               
+            }
+            if (count < 2)
+                return false;
+            else
+                return true;
+        }
+
+        public bool ToujoursVivant()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    if (emplacementBateau[i, j] == 'B')
+
+                        return true;
                 }
             }
-            return true;
+            return false;
         }
 
         public void MettreAJourGrille(string coord)

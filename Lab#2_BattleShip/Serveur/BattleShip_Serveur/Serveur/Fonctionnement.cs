@@ -48,7 +48,7 @@ namespace Serveur
                 string coordAdversaire = deSe.Deserialize(communicationServeur.ReceptionMessage(out reponse));
                 communicationServeur.EnvoisMessage(deSe.Serialize(coord));
                 grilleAttaque.PlacerBateau(coordAdversaire);
-                while (!maGrille.bateauMort())
+                while (!grilleAttaque.bateauAdversaireMort())
                 {
                     Print();
 
@@ -88,9 +88,12 @@ namespace Serveur
 
 
                 }
-                if (grilleAttaque.bateauMort())
+                if (grilleAttaque.bateauAdversaireMort())
                 {
                     Console.WriteLine("Félicitations ! Vous avez coulé le bateau ennemi !");
+
+                    communicationServeur.EnvoisMessage(deSe.Serialize("Voulez vous rejouer?"));
+
                     string resultatServeur = deSe.Deserialize(communicationServeur.ReceptionMessage(out reponse));
 
                     if (resultatServeur == "1")
