@@ -17,7 +17,7 @@ namespace BattleShip
 
         private char[,] emplacementBateau = new char[4, 4];
         private char[,] emplacement = new char[4, 4];
-        List<string> caractereGrille = new List<string>();
+        
 
         string lettreDuTableau = "ABCD";
 
@@ -120,13 +120,16 @@ namespace BattleShip
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    if (emplacementBateau[i, j] == 'B' && emplacement[i, j] != 'T')
+                    if (emplacement[i, j] == 'T')
                     {
-                        return false; // Il reste au moins une partie du bateau non touchée
+                        if ((j<4&&(emplacement[i, j+1] == 'T')) || (i<4&&(emplacement[i+1,j] == 'T')) || (j>0&&(emplacement[i, j-1] == 'T')) || (i < 0 && (emplacement[i - 1, j] == 'T')))
+                            return true;
+
+
                     }
                 }
             }
-            return true; // Toutes les parties du bateau ont été touchées
+            return false; 
         }
 
         public void MettreAJourGrille(string coord)
