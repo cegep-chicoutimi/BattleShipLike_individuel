@@ -7,10 +7,10 @@ namespace Serveur
         CommunicationServeur communicationServeur = new CommunicationServeur();
         De_Serialisation deSe = new De_Serialisation();
         bool reponse;
-        GrilleBattle maGrille = new GrilleBattle();
-        GrilleBattle grilleAttaque = new GrilleBattle();
-        GrilleBattle GrilleBateauAdversaire = new GrilleBattle();
+        GrilleBattle maGrille;
+        GrilleBattle grilleAttaque;
         bool rejouer = true;
+        bool gagner;
 
         public void Sequence()
         {
@@ -19,7 +19,12 @@ namespace Serveur
 
             while (rejouer)
             {
-                // Placement des bateaux
+                Console.Clear();
+                maGrille = new GrilleBattle();
+                grilleAttaque = new GrilleBattle();
+                gagner = false;
+
+                // === PHASE DE PLACEMENT DES BATEAUX ===
                 Console.WriteLine("Placez vos bateaux (ex: A1 B1 pour un bateau horizontal) :");
                 string coord = Console.ReadLine();
                 while (!maGrille.PlacerBateau(coord))
@@ -28,9 +33,7 @@ namespace Serveur
                     coord = Console.ReadLine();
                 }
 
-
-                // Après le placement des bateaux
-
+                // === SYNCHRONISATION AVEC LE CLIENT ===
                 string messageClient = communicationServeur.ReceptionMessage(out reponse);
                 messageClient = messageClient.Trim().ToLower();
                 Console.WriteLine(">> Message brut reçu : " + messageClient);
@@ -45,31 +48,32 @@ namespace Serveur
                     Console.WriteLine("Erreur de synchronisation avec le client.");
                     return;
                 }
+                // Recevoir les coordonnées de bateau du client et envoyer les siennes
                 string coordAdversaire = deSe.Deserialize(communicationServeur.ReceptionMessage(out reponse));
                 communicationServeur.EnvoisMessage(deSe.Serialize(coord));
+                // Placer les bateaux adverses dans emplacementBateau (grille d'attaque)
                 grilleAttaque.PlacerBateau(coordAdversaire);
-                while (!grilleAttaque.bateauAdversaireMort())
-                {
-                    Print();
 
-                    // RÉCEPTION DU TIR DU CLIENT127
+                Console.Clear();
+                // === BOUCLE DE JEU ===
+                while (!gagner)
+                {
+                    PrintGrilles();
+
+                    // === RÉCEPTION DU TIR DU CLIENT ===
                     string tirClient = deSe.Deserialize(communicationServeur.ReceptionMessage(out reponse));
                     maGrille.MettreAJourGrille(tirClient);
 
-                    Print();
+                    PrintGrilles();
                     Console.WriteLine($"Le client a tiré en {tirClient}");
+                    if (!maGrille.ToujoursVivant())
+                    {
+                        Console.WriteLine("Dommage, vous avez perdu !");
+                        gagner = false;
+                        break;
+                    }
 
-                    // ENVOI DU RÉSULTAT AU CLIENT
-                    //string resultatClient = maGrille.bateauMort() ? "coule" : "continue";
-                    //    communicationServeur.EnvoisMessage(deSe.Serialize(resultatClient));
-
-                    //    if (maGrille.bateauMort())
-                    //    {
-                    //        Console.WriteLine("Dommage ! Votre bateau a été coulé !");
-                    //        break;
-                    //    }
-
-                    // TOUR DU SERVEUR : ENVOI DU TIR AU CLIENT
+                    // === TOUR DU SERVEUR : ENVOI DU TIR AU CLIENT ===
                     Console.WriteLine("Entrez les coordonnées de votre tir (ex: A1) :");
                     string tirServeur = Console.ReadLine();
                     while (!grilleAttaque.Tirer(tirServeur))
@@ -80,44 +84,44 @@ namespace Serveur
 
 
 
-                    communicationServeur.EnvoisMessage(deSe.Serialize(tirServeur));
+                    communicationServeur.EnvoisMessage(deSe.Serialize(tirServeur));// Envoi du tir au client
 
-                    // RÉCEPTION DU RÉSULTAT DU CLIENT
-                    // string resultatServeur = deSe.Deserialize(communicationServeur.ReceptionMessage(out reponse));
-
-
+                    if (grilleAttaque.bateauAdversaireMort())
+                    {
+                        Console.WriteLine("Bravo, vous avez gagné !");
+                        gagner = true;
+                        break;
+                    }
 
                 }
-                if (grilleAttaque.bateauAdversaireMort())
+                // Informe le client qu'il a gagné si le serveur a perdu
+                if (!gagner)
                 {
-                    Console.WriteLine("Félicitations ! Vous avez coulé le bateau ennemi !");
-
-                    communicationServeur.EnvoisMessage(deSe.Serialize("Voulez vous rejouer?"));
-
-                    string resultatServeur = deSe.Deserialize(communicationServeur.ReceptionMessage(out reponse));
-
-                    if (resultatServeur == "1")
-                    {
-                        rejouer = true;
-                    }
-                    else
-                    {
-                        rejouer = false;
-                    }
+                    communicationServeur.EnvoisMessage(deSe.Serialize("Gagné"));
+                }
+                // === RECEPTION DE REJOUER ===
+                string reponseClient = deSe.Deserialize(communicationServeur.ReceptionMessage(out reponse));
+                if (reponseClient == "1")
+                {
+                    rejouer = true;
+                }
+                else if (reponseClient == "2")
+                {
+                    rejouer = false;
                 }
 
-                // Boucle de jeu principale
 
             }
 
         }
 
-        public void Print()
+        public void PrintGrilles()
         {
             Console.Clear();
+            Console.WriteLine("--- Bataille navale ---\n");
             Console.WriteLine("Grille d'attaque :");
             grilleAttaque.AfficherGrilleTir();
-            Console.WriteLine("Votre grille de bateaux :");
+            Console.WriteLine("\nVotre grille de bateaux :");
             maGrille.AfficherMaGrilleBateau();
             
         }
