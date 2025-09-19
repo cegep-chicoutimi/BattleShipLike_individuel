@@ -18,6 +18,7 @@ namespace Client
         bool rejouer = true;
         bool gagner;
         bool demanderRejouer;
+        string error;
 
         public void Sequence()
         {
@@ -43,9 +44,9 @@ namespace Client
                 // Placement des bateaux
                 Console.WriteLine("Placez vos bateaux (ex: A1 B1 pour un bateau horizontal) :");
                 string coord = Console.ReadLine();
-                while (!maGrille.PlacerBateau(coord))
+                while (!maGrille.PlacerBateau(coord, out error))
                 {
-                    Console.WriteLine("Coordonnées invalides, réessayez :");
+                    Console.WriteLine($"Coordonnées invalides:{error}  réessayez :");
                     coord = Console.ReadLine();
                 }
 
@@ -64,7 +65,7 @@ namespace Client
                 communicationClient.EnvoisMessage(deSe.Serialize(coord));
                 string coordonneeAdversaire = deSe.Deserialize(communicationClient.ReceptionMessage());
                 // Placer les bateaux adverses dans emplacementBateau (grille d'attaque)
-                grilleAttaque.PlacerBateau(coordonneeAdversaire);
+                grilleAttaque.PlacerBateau(coordonneeAdversaire, out error);
 
                 Console.Clear();
                 while (!gagner)
@@ -74,9 +75,9 @@ namespace Client
                     // Tour du joueur
                     Console.WriteLine("Entrez les coordonnées de votre tir (ex: A1) :");
                     string tir = Console.ReadLine();
-                    while (!grilleAttaque.Tirer(tir))
+                    while (!grilleAttaque.Tirer(tir, out error))
                     {
-                        Console.WriteLine("Coordonnées invalides ou déjà jouées, réessayez :");
+                        Console.WriteLine($"{error}");
                         tir = Console.ReadLine();
                     }
                     PrintGrilles();
