@@ -17,14 +17,19 @@ namespace Serveur
         {
             Console.Clear();
             communicationServeur.StartListening();
+            
             do
             {
                 rejouer = true;
                 while (rejouer)
                 {
+                    string tailleGrille = deSe.Deserialize(communicationServeur.ReceptionMessage(out reponse));
+                    string[] tailles = tailleGrille.Split(',');
+                    int lignes = int.Parse(tailles[0]);
+                    int colonnes = int.Parse(tailles[1]);
                     Console.Clear();
-                    maGrille = new GrilleBattle();
-                    grilleAttaque = new GrilleBattle();
+                    maGrille = new GrilleBattle(lignes, colonnes);
+                    grilleAttaque = new GrilleBattle(lignes, colonnes);
                     gagner = false;
 
                     // === PHASE DE PLACEMENT DES BATEAUX ===

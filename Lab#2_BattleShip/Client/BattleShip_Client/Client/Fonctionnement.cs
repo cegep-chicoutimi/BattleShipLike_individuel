@@ -36,17 +36,33 @@ namespace Client
             // === BOUCLE PRINCIPALE ===
             while (rejouer)
             {
+                // Initialisation des grilles
+                Console.WriteLine("Entrez la taille de la grille :");
+                int lignes, colonnes;
+                do
+                {
+                    Console.Write("Nombre de lignes (entre 4 et 12) : ");
+                } while (!int.TryParse(Console.ReadLine(), out lignes) || lignes < 4 || lignes > 12);
+
+                do
+                {
+                    Console.Write("Nombre de colonnes (entre 4 et 12) : ");
+                } while (!int.TryParse(Console.ReadLine(), out colonnes) || colonnes < 4 || colonnes > 12);
+
+                communicationClient.EnvoisMessage(deSe.Serialize($"{lignes},{colonnes}"));
                 Console.Clear();
-                maGrille = new GrilleBattle();
-                grilleAttaque = new GrilleBattle();
+                maGrille = new GrilleBattle(lignes, colonnes);
+                grilleAttaque = new GrilleBattle(lignes, colonnes);
 
                 gagner = false;
+                
+                
                 // Placement des bateaux
                 Console.WriteLine("Placez vos bateaux (ex: A1 B1 pour un bateau horizontal) :");
                 string coord = Console.ReadLine();
                 while (!maGrille.PlacerBateau(coord, out error))
                 {
-                    Console.WriteLine($"Coordonnées invalides:{error}  réessayez :");
+                    Console.WriteLine($"{error}");
                     coord = Console.ReadLine();
                 }
 

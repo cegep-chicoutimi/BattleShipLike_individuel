@@ -8,86 +8,27 @@ namespace BattleShip
 {
     public class GrilleBattle
     {
-        /* Tableau dans lequel on va contenir nos symboles, on a choisi
-         B pour beateau; X pour bateau touché et O dans le cas où la 
-         case est vide. Deplus ce sera lui qui va nous permettre de 
-         savoir au fure et à mesure de remplir notre grille et sera envoyé
-         du client au serveur plus du serveur au client
-        */
+        private char[,] emplacementBateau;
+        private char[,] emplacement;
+        private int lignes;
+        private int colonnes;
+        private string lettreDuTableau;
 
-        private char[,] emplacementBateau = new char[4, 4];
-        private char[,] emplacement = new char[4, 4];
-
-
-        string lettreDuTableau = "ABCD";
-
-        // au debut ce tableau est vide car personne n'a encore joué donc...
-
-        public GrilleBattle()
+        // Nouveau constructeur avec lignes et colonnes
+        public GrilleBattle(int lignes, int colonnes)
         {
-            for (int x = 0; x < 4; x++)
-                for (int y = 0; y < 4; y++)
+            this.lignes = lignes;
+            this.colonnes = colonnes;
+            emplacementBateau = new char[lignes, colonnes];
+            emplacement = new char[lignes, colonnes];
+            lettreDuTableau = "";
+            for (int i = 0; i < colonnes; i++)
+                lettreDuTableau += (char)('A' + i);
+
+            for (int x = 0; x < lignes; x++)
+                for (int y = 0; y < colonnes; y++)
                     emplacement[x, y] = '-';
         }
-
-        public bool PlacerBateau(string coord, out string e)
-        {
-            if (string.IsNullOrWhiteSpace(coord))
-            {
-                e = "Coordonnées invalides: coordonnées vides";
-                return false;
-            }
-            string[] coords = coord.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (coords.Length != 2)
-            {
-                e = "Coordonnées invalides: vous devez donner deux coordoonnées";
-                return false;
-            }
-            if (!ConvertirCoord(coords[0], out int x1, out int y1, out e))
-            {
-                e = "Coordonnées invalides: colonne invalide";
-                return false;
-            }
-            if (!ConvertirCoord(coords[1], out int x2, out int y2, out e))
-            {
-                e = "Coordonnées invalides: ligne invalide";
-                return false;
-            }
-
-            if (!SontAdjacentes(x1, y1, x2, y2))
-            {
-                e = "Coordonnées invalides: les coordonnées doivent être adjacentes";
-                return false;
-            }
-
-            if (emplacementBateau[x1, y1] == 'B' || emplacementBateau[x2, y2] == 'B')
-            {
-                e = "Coordonnées invalides";
-                return false;
-            }
-
-            emplacementBateau[x1, y1] = 'B';
-            emplacementBateau[x2, y2] = 'B';
-            e = "";
-            return true;
-        }
-
-
-
-        public bool SontAdjacentes(int x1, int y1, int x2, int y2)
-        {
-            // même ligne, colonnes consécutives
-            if (x1 == x2 && (y1 == y2 + 1 || y1 == y2 - 1))
-                return true;
-
-            // même colonne, lignes consécutives
-            if (y1 == y2 && (x1 == x2 + 1 || x1 == x2 - 1))
-                return true;
-
-            return false;
-        }
-
-
 
         public bool ConvertirCoord(string coord, out int x, out int y, out string e)
         {
@@ -102,23 +43,21 @@ namespace BattleShip
             char col = coord[0];
             char row = coord[1];
 
-            // Conversion colonne
             int colIndex = lettreDuTableau.IndexOf(col);
             if (colIndex == -1)
             {
-                e = "Coordonnées invalides:, réessayez";
+                e = "Coordonnées invalides: colonne hors grille, réessayez";
                 return false;
             }
-            // Conversion ligne
             if (!char.IsDigit(row))
             {
-                e = "Coordonnées invalides:, réessayez";
+                e = "Coordonnées invalides: ligne non numérique, réessayez";
                 return false;
             }
             int rowIndex = (int)char.GetNumericValue(row) - 1;
-            if (rowIndex < 0 || rowIndex >= emplacement.GetLength(0))
+            if (rowIndex < 0 || rowIndex >= lignes)
             {
-                e = "Coordonnées invalides: tir en dehors de la grille, réessayez";
+                e = "Coordonnées invalides: ligne hors grille, réessayez";
                 return false;
             }
             x = rowIndex;
@@ -127,20 +66,68 @@ namespace BattleShip
             return true;
         }
 
+        public bool PlacerBateau(string coord, out string e)
+        {
+            if (string.IsNullOrWhiteSpace(coord))
+            {
+                e = "Coordonnées invalides: coordonnées vides, réessayez";
+                return false;
+            }
+            string[] coords = coord.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (coords.Length != 2)
+            {
+                e = "Coordonnées invalides: vous devez donner deux coordonnées, réessayez";
+                return false;
+            }
+            if (!ConvertirCoord(coords[0], out int x1, out int y1, out e))
+            {
+                return false;
+            }
+            if (!ConvertirCoord(coords[1], out int x2, out int y2, out e))
+            {
+                return false;
+            }
+
+            if (!SontAdjacentes(x1, y1, x2, y2))
+            {
+                e = "Coordonnées invalides: les coordonnées doivent être adjacentes, réessayez";
+                return false;
+            }
+
+            if (emplacementBateau[x1, y1] == 'B' || emplacementBateau[x2, y2] == 'B')
+            {
+                e = "Coordonnées invalides: un bateau est déjà placé sur une des cases, réessayez";
+                return false;
+            }
+
+            emplacementBateau[x1, y1] = 'B';
+            emplacementBateau[x2, y2] = 'B';
+            e = "";
+            return true;
+        }
+
+        public bool SontAdjacentes(int x1, int y1, int x2, int y2)
+        {
+            if (x1 == x2 && (y1 == y2 + 1 || y1 == y2 - 1))
+                return true;
+            if (y1 == y2 && (x1 == x2 + 1 || x1 == x2 - 1))
+                return true;
+            return false;
+        }
+
         public bool Tirer(string coord, out string e)
         {
             if (!ConvertirCoord(coord, out int x, out int y, out e))
-                return false; // coordonnées invalides
-
+                return false;
             if (emplacement[x, y] == 'T' || emplacement[x, y] == 'X')
             {
                 e = "Coordonnées invalides: vous avez déjà tiré sur cette case, réessayez";
-                return false; // déjà joué
+                return false;
             }
             if (emplacementBateau[x, y] == 'B')
-                emplacement[x, y] = 'T'; // touché
+                emplacement[x, y] = 'T';
             else if (emplacement[x, y] == '-')
-                emplacement[x, y] = 'X'; // raté
+                emplacement[x, y] = 'X';
             e = "";
             return true;
         }
@@ -148,30 +135,24 @@ namespace BattleShip
         public bool bateauAdversaireMort()
         {
             int count = 0;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < lignes; i++)
             {
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < colonnes; j++)
                 {
-                    if (emplacement[i, j] == 'T' && count != 2)
+                    if (emplacement[i, j] == 'T')
                         count++;
                 }
-
-
             }
-            if (count < 2)
-                return false;
-            else
-                return true;
+            return count >= 2;
         }
 
         public bool ToujoursVivant()
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < lignes; i++)
             {
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < colonnes; j++)
                 {
                     if (emplacementBateau[i, j] == 'B')
-
                         return true;
                 }
             }
@@ -183,70 +164,105 @@ namespace BattleShip
             string e;
             if (!ConvertirCoord(coord, out int x, out int y, out e))
                 return;
-
             if (emplacementBateau[x, y] == 'B')
                 emplacementBateau[x, y] = 'T';
             else
                 emplacementBateau[x, y] = 'X';
         }
 
-
-
         public void AfficherMaGrilleBateau()
         {
             Console.Write("    ");
-            foreach (char letter in "ABCD")
+            foreach (char letter in lettreDuTableau)
             {
                 Console.Write($" {letter}  ");
             }
             Console.WriteLine();
-            Console.WriteLine("  ┌───┬───┬───┬───┐");
-            for (int numLigne = 0; numLigne < 4; numLigne++)
+            Console.Write("  ┌");
+            for (int i = 0; i < colonnes; i++)
+            {
+                Console.Write("───");
+                if (i < colonnes - 1) Console.Write("┬");
+            }
+            Console.WriteLine("┐");
+            for (int numLigne = 0; numLigne < lignes; numLigne++)
             {
                 Console.Write($"{numLigne + 1} │");
-                for (int barreHorizontale = 0; barreHorizontale < 4; barreHorizontale++)
+                for (int barreHorizontale = 0; barreHorizontale < colonnes; barreHorizontale++)
                 {
                     char symbole = emplacementBateau[numLigne, barreHorizontale];
-                    if (symbole == '\0') symbole = '-'; // case vide
+                    if (symbole == '\0') symbole = '-';
                     Console.Write($" {symbole} │");
                 }
                 Console.WriteLine();
-                if (numLigne < 3)
-                    Console.WriteLine("  ├───┼───┼───┼───┤");
+                if (numLigne < lignes - 1)
+                {
+                    Console.Write("  ├");
+                    for (int i = 0; i < colonnes; i++)
+                    {
+                        Console.Write("───");
+                        if (i < colonnes - 1) Console.Write("┼");
+                    }
+                    Console.WriteLine("┤");
+                }
                 else
-                    Console.WriteLine("  └───┴───┴───┴───┘");
+                {
+                    Console.Write("  └");
+                    for (int i = 0; i < colonnes; i++)
+                    {
+                        Console.Write("───");
+                        if (i < colonnes - 1) Console.Write("┴");
+                    }
+                    Console.WriteLine("┘");
+                }
             }
         }
 
         public void AfficherGrilleTir()
         {
             Console.Write("    ");
-            foreach (char letter in "ABCD")
+            foreach (char letter in lettreDuTableau)
             {
                 Console.Write($" {letter}  ");
             }
             Console.WriteLine();
-            Console.WriteLine("  ┌───┬───┬───┬───┐");
-            for (int numLigne = 0; numLigne < 4; numLigne++)
+            Console.Write("  ┌");
+            for (int i = 0; i < colonnes; i++)
+            {
+                Console.Write("───");
+                if (i < colonnes - 1) Console.Write("┬");
+            }
+            Console.WriteLine("┐");
+            for (int numLigne = 0; numLigne < lignes; numLigne++)
             {
                 Console.Write($"{numLigne + 1} │");
-                for (int barreHorizontale = 0; barreHorizontale < 4; barreHorizontale++)
+                for (int barreHorizontale = 0; barreHorizontale < colonnes; barreHorizontale++)
                 {
                     char symbole = emplacement[numLigne, barreHorizontale];
                     Console.Write($" {symbole} │");
                 }
                 Console.WriteLine();
-                if (numLigne < 3)
-                    Console.WriteLine("  ├───┼───┼───┼───┤");
+                if (numLigne < lignes - 1)
+                {
+                    Console.Write("  ├");
+                    for (int i = 0; i < colonnes; i++)
+                    {
+                        Console.Write("───");
+                        if (i < colonnes - 1) Console.Write("┼");
+                    }
+                    Console.WriteLine("┤");
+                }
                 else
-                    Console.WriteLine("  └───┴───┴───┴───┘");
+                {
+                    Console.Write("  └");
+                    for (int i = 0; i < colonnes; i++)
+                    {
+                        Console.Write("───");
+                        if (i < colonnes - 1) Console.Write("┴");
+                    }
+                    Console.WriteLine("┘");
+                }
             }
         }
-
-
-
-
-
-
     }
 }
